@@ -1,0 +1,26 @@
+{
+  "name": "root",
+  "version": "1.0.0",
+  "description": "README.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "react-three-fiber": "^6.0.13",
+    "three": "^0.174.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/thorchain/thornode.git"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/thorchain/thornode/issues"
+  },
+  "homepage": "https://gitlab.com/thorchain/thornode#readme"
+}
