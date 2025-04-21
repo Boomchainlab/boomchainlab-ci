@@ -1,0 +1,4 @@
+"scripts": {
+  "dev": "ts-node dagger/main.ts",
+  "build": "tsc"
+}
