@@ -1,0 +1,5 @@
+{
+  "name": "boomchainlab-ci",
+  "description": "Dagger CI module for Boomchainlab projects with Vercel deploy and smart contract builds.",
+  "sdk": "nodejs"
+}
