@@ -1,4 +1,29 @@
-"scripts": {
-  "dev": "ts-node dagger/main.ts",
-  "build": "tsc"
+{
+  "name": "root",
+  "version": "1.0.0",
+  "description": "Boomchainlab CI setup for Dagger",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "ts-node main.ts"
+  },
+  "dependencies": {
+    "dagger-sdk": "^0.18.3",
+    "react-three-fiber": "^6.0.13",
+    "three": "^0.174.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.0",
+    "ts-node": "^10.0.0",
+    "@types/node": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Boomchainlab/boomchainlab-ci.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Boomchainlab/boomchainlab-ci/issues"
+  },
+  "homepage": "https://github.com/Boomchainlab/boomchainlab-ci#readme"
 }
