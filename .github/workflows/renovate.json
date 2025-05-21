@@ -1,0 +1,33 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "npmrc": "//registry.npmjs.org/:_authToken={{npmToken}}",
+  "hostRules": [
+    {
+      "hostType": "npm",
+      "matchHost": "registry.npmjs.org",
+      "token": "{{npmToken}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["*"],
+      "groupName": "All Dependencies",
+      "groupSlug": "all-deps"
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "groupName": "Dev Dependencies",
+      "groupSlug": "dev-deps"
+    }
+  ],
+  "schedule": ["before 3am on sunday"],  // Change to fit your CI schedule
+  "timezone": "Africa/Lagos",           // Adjust to your operational time zone
+  "dependencyDashboard": true,
+  "rebaseWhen": "conflicted",
+  "platformAutomerge": true,
+  "automergeType": "pr",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 10
+}
