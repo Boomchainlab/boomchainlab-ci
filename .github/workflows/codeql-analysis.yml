@@ -1,0 +1,54 @@
+name: "CodeQL"
+
+on:
+  workflow_dispatch:
+    inputs:
+      code_scanning_ref:
+        description: 'Branch or tag to scan'
+        required: true
+      code_scanning_codeql_packs:
+        description: 'Organization-level CodeQL model packs (comma-separated)'
+        required: false
+      code_scanning_workflow_file:
+        description: 'Workflow file path (if scanning another workflow)'
+        required: false
+
+env:
+  CODE_SCANNING_REF: ${{ github.event.inputs.code_scanning_ref }}
+  CODE_SCANNING_WORKFLOW_FILE: ${{ github.event.inputs.code_scanning_workflow_file }}
+  CODE_SCANNING_CODEQL_PACKS: ${{ github.event.inputs.code_scanning_codeql_packs }}
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+          - language: javascript-typescript
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+          config: |
+            default-setup:
+              org:
+                model-packs: [${{ env.CODE_SCANNING_CODEQL_PACKS }}]
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
