@@ -1,0 +1,55 @@
+name: Node.js CI Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: false
+        type: string
+        default: '["24.0.1", "22.15.0"]'
+    secrets:
+      NPM_TOKEN:
+        required: false
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ${{ fromJson(inputs.node_version) }}
+
+    name: Node.js ${{ matrix.node }} Build and Test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint || echo "Lint warnings ignored"
+
+      - name: Run Build
+        run: npm run build
+
+      - name: Run Tests
+        run: npm test -- --ci --coverage
+
+      - name: Upload Test Coverage
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node }}
+          path: coverage
+
+      - name: Publish to npm (optional)
+        if: github.ref == 'refs/heads/main' && inputs.NPM_TOKEN != ''
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
+          npm publish
