@@ -23,22 +23,29 @@ jobs:
           sudo apt-get update && sudo apt-get install -y jq
           pip install requests
 
-      - name: Update metadata
+      - name: Backup original metadata
+        run: cp token-list.json token-list.backup.json
+
+      - name: Update metadata for multiple tokens
         run: |
-          jq '(.tokens[] | select(.address == "51ey1T4UCFwb8poVBwyiLwwi1KdNTrZ8rSg7kBRmqray") 
-              | .tags) += ["graduated", "featured"]' token-list.json > tmp.json
+          jq '(.tokens[] | select(.address == "51ey1T4UCFwb8poVBwyiLwwi1KdNTrZ8rSg7kBRmqray") | .tags) += ["graduated", "featured"] |
+              (.tokens[] | select(.address == "DnUsQnwNot38JbisNC18VHZkae1eKK5N2Dgy55pump") | .tags) += ["graduated", "featured"]' token-list.json > tmp.json
           mv tmp.json token-list.json
 
-      - name: Commit and push
+      - name: Commit and push if changes detected
         run: |
           git config --global user.name "BoomchainLabs CI Bot"
           git config --global user.email "support@boomchainlab.com"
-          git add token-list.json
-          git commit -m "chore: CHONKPUMP 9000 graduated 🎓"
-          git push origin main
+          if ! git diff --quiet; then
+            git add token-list.json
+            git commit -m "chore: CHONKPUMP 9000 and secondary token graduated 🎓"
+            git push origin main
+          else
+            echo "No changes detected, skipping commit."
+          fi
 
       - name: Notify Twitter
-        if: env.TWITTER_WEBHOOK != ''
+        if: secrets.TWITTER_WEBHOOK
         env:
           TWITTER_WEBHOOK: ${{ secrets.TWITTER_WEBHOOK }}
         run: |
@@ -46,8 +53,8 @@ jobs:
           '{"message": "🎓 CHONKPUMP 9000 has officially graduated. Beast Mode activated. #CHONK9000"}' \
           "$TWITTER_WEBHOOK"
 
-      - name: Notify Raydium
-        if: env.RAYDIUM_DISCORD != ''
+      - name: Notify Raydium Discord
+        if: secrets.RAYDIUM_DISCORD
         env:
           RAYDIUM_DISCORD: ${{ secrets.RAYDIUM_DISCORD }}
         run: |
