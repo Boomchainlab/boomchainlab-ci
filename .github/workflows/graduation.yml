@@ -1,67 +1,28 @@
-name: Graduation Dispatch
+name: Chonk9k Graduation
 
 on:
-  repository_dispatch:
-    types: [graduation_triggered]
-
-permissions:
-  contents: write
-  secrets: read
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "graduate" to confirm token graduation'
+        required: true
 
 jobs:
-  update-token-info:
-    name: Update Token Metadata and Notify
+  graduate:
+    if: github.event.inputs.confirm == 'graduate'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout token-info repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.13'
+          node-version: '18'
 
-      - name: Install tools
-        run: |
-          sudo apt-get update && sudo apt-get install -y jq
-          pip install requests
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Backup original metadata
-        run: cp token-list.json token-list.backup.json
-
-      - name: Update metadata for multiple tokens
-        run: |
-          jq '(.tokens[] | select(.address == "51ey1T4UCFwb8poVBwyiLwwi1KdNTrZ8rSg7kBRmqray") | .tags) += ["graduated", "featured"] |
-              (.tokens[] | select(.address == "DnUsQnwNot38JbisNC18VHZkae1eKK5N2Dgy55pump") | .tags) += ["graduated", "featured"]' token-list.json > tmp.json
-          mv tmp.json token-list.json
-
-      - name: Commit and push if changes detected
-        run: |
-          git config --global user.name "BoomchainLabs CI Bot"
-          git config --global user.email "support@boomchainlab.com"
-          if ! git diff --quiet; then
-            git add token-list.json
-            git commit -m "chore: CHONKPUMP 9000 and secondary token graduated 🎓"
-            git push origin main
-          else
-            echo "No changes detected, skipping commit."
-          fi
-
-      - name: Notify Twitter
-        if: secrets.TWITTER_WEBHOOK
+      - name: Execute Graduation Script
+        run: pnpm ts-node scripts/graduateChonk.ts
         env:
-          TWITTER_WEBHOOK: ${{ secrets.TWITTER_WEBHOOK }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" -d \
-          '{"message": "🎓 CHONKPUMP 9000 has officially graduated. Beast Mode activated. #CHONK9000"}' \
-          "$TWITTER_WEBHOOK"
-
-      - name: Notify Raydium Discord
-        if: secrets.RAYDIUM_DISCORD
-        env:
-          RAYDIUM_DISCORD: ${{ secrets.RAYDIUM_DISCORD }}
-        run: |
-          curl -X POST -H "Content-Type: application/json" -d \
-          '{"content": "**$CHONKPUMP 9000 has graduated!** Raydium LP: https://raydium.io/swap/?inputCurrency=sol&outputCurrency=51ey1T4UCFwb8poVBwyiLwwi1KdNTrZ8rSg7kBRmqray"}' \
-          "$RAYDIUM_DISCORD"
+          GRADUATION_KEY: ${{ secrets.GRADUATION_KEY }}
