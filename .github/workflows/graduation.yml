@@ -11,13 +11,16 @@ jobs:
   graduate:
     if: github.event.inputs.confirm == 'graduate'
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Install dependencies
         run: pnpm install
@@ -26,3 +29,23 @@ jobs:
         run: pnpm ts-node scripts/graduateChonk.ts
         env:
           GRADUATION_KEY: ${{ secrets.GRADUATION_KEY }}
+
+      - name: Verify On-Chain Graduation
+        run: pnpm ts-node scripts/verifyGraduation.ts
+
+      - name: Upload Graduation Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chonk9k-graduation-logs
+          path: |
+            tx-hash.txt
+            logs/
+
+      - name: Notify Success (Optional)
+        if: success()
+        run: echo "🎓 CHONK9K successfully graduated and verified!"
+
+      - name: Notify Failure (Optional)
+        if: failure()
+        run: echo "❌ CHONK9K graduation failed. Please investigate."
