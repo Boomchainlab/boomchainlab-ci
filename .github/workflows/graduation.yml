@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: [graduation_triggered]
 
+permissions:
+  contents: write
+  secrets: read
+
 jobs:
   update-token-info:
     name: Update Token Metadata and Notify
