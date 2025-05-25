@@ -1,0 +1,22 @@
+jobs:
+  go-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@c65cd883420fd2eb864698a825fc4162dd94482c
+
+      - name: List all changed files
+        run: |
+          echo "Changed files:"
+          echo "${{ steps.changed-files.outputs.all_changed_files }}"
+
+      - name: Run Go lint/test only if .go files changed
+        if: contains(steps.changed-files.outputs.all_changed_files, '.go')
+        run: |
+          go mod tidy
+          go build -v ./...
+          go test -v ./...
