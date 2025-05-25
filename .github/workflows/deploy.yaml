@@ -1,0 +1,60 @@
+# .github/workflows/deploy.yaml
+name: Build, Test, Push & Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/boomchainlab/evm-web3-starter
+      RELEASE_NAME: evm-web3
+      CHART_PATH: ./helm-evm-web3-v4
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟦 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install dependencies
+        run: npm install
+
+      - name: ✅ Run tests
+        run: npm test
+
+      - name: 🐳 Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🏗️ Build & Push Docker image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
+
+      - name: ☸️ Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.28.0
+
+      - name: ⎈ Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.12.0
+
+      - name: 🚀 Deploy via Helm
+        run: |
+          helm upgrade --install $RELEASE_NAME $CHART_PATH \
+            --namespace boomchain \
+            --create-namespace \
+            --values $CHART_PATH/values.prod.yaml \
+            --set image.tag=latest
