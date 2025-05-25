@@ -1,0 +1,29 @@
+replicaCount: 2
+
+image:
+  repository: boomchainlab/evm-web3-starter
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8545
+
+ingress:
+  enabled: true
+  hosts:
+    - host: evm.boomchainlab.com
+      paths:
+        - /
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
