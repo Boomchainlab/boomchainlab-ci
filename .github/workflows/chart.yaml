@@ -1,0 +1,5 @@
+apiVersion: v2
+name: evm-web3-starter
+description: A Helm chart for deploying Boomchainlab EVM Web3 Starter
+version: 0.1.0
+appVersion: "1.0"
