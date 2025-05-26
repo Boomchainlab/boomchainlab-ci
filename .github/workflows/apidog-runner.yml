@@ -1,0 +1,60 @@
+name: Apidog Runner CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/apidog-runner-alpine
+  TZ: Africa/Lagos
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build runner Docker image
+        run: |
+          docker build --build-arg TZ=${{ env.TZ }} -f docker/Dockerfile.apidog-runner -t $IMAGE_NAME:latest .
+
+      - name: Push Docker image to GHCR
+        run: docker push $IMAGE_NAME:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Run Apidog Runner Container
+        run: |
+          docker pull $IMAGE_NAME:latest
+          docker stop apidog_general_runner || true
+          docker rm apidog_general_runner || true
+          docker run --name apidog_general_runner \
+            -e SERVER_APP_BASE_URL=https://api.apidog.com \
+            -e ORGANIZATION_ID=${{ secrets.ORGANIZATION_ID }} \
+            -e RUNNER_ID=${{ secrets.RUNNER_ID }} \
+            -e ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} \
+            -e TZ=${{ env.TZ }} \
+            -p 4524:4524 \
+            -d $IMAGE_NAME:latest
