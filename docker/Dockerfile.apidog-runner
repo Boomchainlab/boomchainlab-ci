@@ -1,0 +1,16 @@
+FROM alpine:latest
+
+# Install dependencies
+RUN apk add --no-cache curl bash libc6-compat tzdata
+
+# Set timezone
+ARG TZ=Africa/Lagos
+RUN ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+
+# Download Apidog runner binary (replace URL with latest official)
+RUN curl -L -o /usr/local/bin/apidog-runner https://example.com/path/to/self-hosted-general-runner-linux-amd64 && \
+    chmod +x /usr/local/bin/apidog-runner
+
+EXPOSE 4524
+
+ENTRYPOINT ["/usr/local/bin/apidog-runner"]
