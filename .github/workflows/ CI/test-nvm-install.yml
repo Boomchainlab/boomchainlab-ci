@@ -1,0 +1,27 @@
+name: CI • NVM Git Install Tester
+
+on:
+  push:
+    paths:
+      - '**.sh'
+      - 'Dockerfile.test-nvm'
+      - '.github/workflows/test-nvm-install.yml'
+  pull_request:
+
+jobs:
+  run-tests:
+    name: Run NVM Git Install Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v3
+
+      - name: Setup Environment
+        run: sudo apt-get update && sudo apt-get install -y git curl
+
+      - name: Make script executable
+        run: chmod +x ./test-nvm-install.sh
+
+      - name: Run Shell Test Suite
+        run: ./test-nvm-install.sh
