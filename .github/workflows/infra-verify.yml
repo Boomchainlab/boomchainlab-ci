@@ -1,0 +1,97 @@
+name: Boomchainlab CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: boomchainlab/${{ github.repository }}
+
+jobs:
+  init-ssh-host-verification:
+    name: Verify GitHub SSH Host Keys
+    runs-on: ubuntu-latest
+    outputs:
+      confirmed: ${{ steps.host-verification.outcome }}
+
+    steps:
+      - name: Add GitHub SSH fingerprints to known_hosts
+        id: host-verification
+        run: |
+          mkdir -p ~/.ssh
+
+          cat >> ~/.ssh/known_hosts <<EOF
+github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqPvjvQugr3MmzVYw9M3gT7won8/lUPZCSvmNydl7vU
+github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAABBBE2O5dJqMBZLZywxN9vTAZW3Njs7PqzJ4wWcKDcgkH+8Oj+QbCMoUeK7x2CcKwsk0m4NyIjASZTt+4T9YXoUYXU+ZVs=
+github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAwGvyy8BYcViEYHkqOkgxOk6WJxVHTxnML8LlZc2Fwr7b8u23uyK2C6H+8kY4riK5U5GLc70J2kp3EjJHgN8EDTpzE+fPZKdWQkSxN1NLfrw6DLxnDYac1/EUAn3P0+2M8q7B96p0pWbSzrJ14NXcmCcu6F8GpPpx2OLbB1Pq3FX4M2YYQ94V8EdXJUIQ
+EOF
+
+  lint:
+    name: Code Linting
+    needs: init-ssh-host-verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Linter
+        run: |
+          pip install flake8
+          flake8 .
+
+  test:
+    name: Run Unit Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Run Tests
+        run: pytest
+
+  docker:
+    name: Build and Publish Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+  deploy:
+    name: Trigger Deployment
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Webhook (e.g. Render, Vercel, GKE)
+        run: |
+          curl -X POST ${{ secrets.DEPLOY_HOOK_URL }}
