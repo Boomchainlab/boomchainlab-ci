@@ -1,0 +1,34 @@
+name: 🚀 Apollo Subgraph Publish
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'products-schema.graphql'
+      - '.github/workflows/subgraph-publish.yml'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    env:
+      APOLLO_KEY: ${{ secrets.APOLLO_KEY }}
+      GRAPH_REF: Chonk9k-supbgraph@current
+      SUBGRAPH_NAME: products
+      ROUTING_URL: http://products.prod.svc.cluster.local:4001/graphql
+
+    steps:
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Install Rover CLI
+        run: |
+          curl -sSL https://rover.apollo.dev/nix/latest | sh
+          echo "$HOME/.rover/bin" >> $GITHUB_PATH
+
+      - name: 🚀 Publish Subgraph to Apollo Studio
+        run: |
+          rover subgraph publish $GRAPH_REF \
+            --name $SUBGRAPH_NAME \
+            --schema ./products-schema.graphql \
+            --routing-url $ROUTING_URL
