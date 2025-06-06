@@ -7,6 +7,9 @@ on:
       - 'products-schema.graphql'
       - '.github/workflows/subgraph-publish.yml'
 
+permissions:
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
