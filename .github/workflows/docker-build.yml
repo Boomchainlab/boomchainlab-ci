@@ -1,0 +1,16 @@
+name: Docker Image CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PAT }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+      - name: Build & Push
+        run: |
+          docker build -t boomchaindock/myapp:latest .
+          docker push boomchaindock/myapp:latest
