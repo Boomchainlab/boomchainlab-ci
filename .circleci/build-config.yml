@@ -1,0 +1,20 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Add GitHub SSH fingerprints to known_hosts
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan -t ecdsa github.com >> ~/.ssh/known_hosts
+            ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts
+            ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+
+            # Optionally verify fingerprints explicitly
+            echo "github.com ECDSA SHA256:p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM" >> ~/.ssh/known_hosts
+            echo "github.com ED25519 SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU" >> ~/.ssh/known_hosts
+            echo "github.com RSA SHA256:uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s" >> ~/.ssh/known_hosts
