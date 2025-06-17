@@ -1,0 +1,22 @@
+name: Email Group Notification
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Email to Boomchain Group
+        env:
+          MAILGUN_API_KEY: ${{ secrets.MAILGUN_API_KEY }}
+          DOMAIN: boomchainlab.com
+        run: |
+          curl -s --user "api:${MAILGUN_API_KEY}" \
+          https://api.mailgun.net/v3/${DOMAIN}/messages \
+          -F from='Boomchain CI <dev@boomchainlab.com>' \
+          -F to='notify@boomchainlab.com' \
+          -F subject='🚀 Push to Main - BoomchainLab Repo' \
+          -F text='A new commit was pushed to main. Please check the CI pipeline for details.'
