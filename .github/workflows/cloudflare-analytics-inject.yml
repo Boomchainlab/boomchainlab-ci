@@ -1,0 +1,32 @@
+name: Inject Cloudflare Web Analytics
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  inject-analytics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Inject Cloudflare Analytics into _document.tsx
+        run: |
+          FILE="pages/_document.tsx"
+          TOKEN="3db3ea6fafbf423a960b45e3eff3582a"
+          if grep -q 'data-cf-beacon' "$FILE"; then
+            echo "Analytics already injected. Skipping."
+          else
+            sed -i "/<Head>/a\
+    <script defer src='https:\/\/static.cloudflareinsights.com\/beacon.min.js' data-cf-beacon='{\"token\": \"$TOKEN\"}'><\/script>" "$FILE"
+          fi
+
+      - name: Commit changes
+        run: |
+          git config user.name "boomchainlab-ci"
+          git config user.email "support@boomchainlab.com"
+          git add .
+          git commit -m "feat(ci): inject Cloudflare Web Analytics"
+          git push
