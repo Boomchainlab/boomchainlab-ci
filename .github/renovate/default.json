@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "timezone": "America/New_York",
+  "schedule": ["before 5am every weekday"],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["after 10pm on sunday"]
+  },
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "semanticCommits": true,
+  "labels": ["dependencies", "renovate"],
+  "ignorePaths": ["examples/**"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "packageNames": ["aws-sdk"],
+      "schedule": ["before 5am every wednesday"]
+    },
+    {
+      "matchPackagePatterns": ["^@?angular"],
+      "groupName": "angular",
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^eslint", "^prettier"],
+      "groupName": "linting-tools",
+      "schedule": ["before 4am every monday"]
+    }
+  ]
+}
