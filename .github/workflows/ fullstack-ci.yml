@@ -1,0 +1,76 @@
+name: Full Stack CI/CD with Testcontainers Cloud
+
+on:
+  push:
+    branches: [main, release/**]
+  pull_request:
+    branches: [main]
+
+env:
+  KUBECONFIG: ${{ secrets.KUBECONFIG }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    name: Run Full Stack Tests
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Setup Testcontainers Cloud
+        uses: atomicjar/testcontainers-cloud-setup-action@v1
+        with:
+          token: ${{ secrets.TC_CLOUD_TOKEN }}
+
+      - name: Install Backend Dependencies
+        run: npm install
+
+      - name: Run Contract Tests (Hardhat)
+        run: npx hardhat test
+
+      - name: Run Backend Integration Tests (Jest/Vitest)
+        run: npm run test:integration
+
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Upload Frontend Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: frontend-build
+          path: frontend/.next
+
+  deploy:
+    name: Deploy to Boomchainlab Infra
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: latest
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 3.12.3
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install evm-web3-starter ./helm/evm-web3-starter \
+          --namespace boomchainlab \
+          --create-namespace \
+          --values ./helm/evm-web3-starter/values.prod.yaml \
+          --wait --timeout 5m
