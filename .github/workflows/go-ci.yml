@@ -7,7 +7,7 @@ jobs:
 
       - name: Get changed files
         id: changed-files
-        uses: tj-actions/changed-files@5f66af5912c4f9c360c03a612f98606fb0f83790
+        uses: tj-actions/changed-files@055970845dd036d7345da7399b7e89f2e10f2b04
 
       - name: List all changed files
         run: |
