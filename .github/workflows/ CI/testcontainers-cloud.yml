@@ -1,0 +1,35 @@
+name: Boomchainlab CI - Testcontainers Cloud
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration-tests:
+    name: Run Boomchainlab Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Log Test Client Name
+        run: echo "Running tests via Boomchainlab Cloud Client"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Setup Testcontainers Cloud
+        uses: atomicjar/testcontainers-cloud-setup-action@v1
+        with:
+          token: ${{ secrets.TC_CLOUD_TOKEN }}
+
+      - name: Run Jest Integration Tests
+        run: npm test

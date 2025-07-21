@@ -1,0 +1,46 @@
+name: Process Uploaded Artifacts
+
+on:
+  push:
+    paths:
+      - 'artifacts/**'
+      - 'uploads/**'
+
+jobs:
+  process-artifacts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Git identity (9000chain)
+        run: |
+          git config user.name "9000chain"
+          git config user.email "support@boomchainlab.com"
+
+      - name: Find all uploaded ZIPs
+        run: |
+          find artifacts uploads -name '*.zip' > artifact_list.txt || true
+
+      - name: Process each artifact and generate hashes
+        run: |
+          while IFS= read -r zipfile; do
+            echo "Processing $zipfile"
+            mkdir -p tmp
+            unzip -o "$zipfile" -d tmp/
+            HASH=$(sha256sum "$zipfile" | cut -d ' ' -f 1)
+            COMMIT=$(git rev-parse HEAD)
+            echo "| \`$COMMIT\` | \`$HASH\` |" >> .tmp_hash
+          done < artifact_list.txt
+
+      - name: Update HASHES.md
+        run: |
+          { echo "| Commit | Hash |"; echo "|--------|------|"; cat HASHES.md .tmp_hash | grep '|' | sort -u; } > HASHES.md || echo "HASHES.md init"
+          rm -rf tmp .tmp_hash artifact_list.txt
+
+      - name: Commit and Push updates
+        run: |
+          git add HASHES.md
+          git commit -m "chore(hashes): update HASHES.md for artifact upload via @Boombot" || echo "No changes"
+          git push
