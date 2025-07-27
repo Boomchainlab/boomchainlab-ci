@@ -27,3 +27,9 @@
   },
   "homepage": "https://github.com/Boomchainlab/boomchainlab-ci#readme"
 }
+"scripts": {
+  "dev": "next dev",
+  "build": "next build",
+  "export": "next export",
+  "start": "next start"
+}
