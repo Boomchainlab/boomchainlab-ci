@@ -35,7 +35,7 @@ EOF
     needs: init-ssh-host-verification
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Linter
         run: |
           pip install flake8
@@ -46,7 +46,7 @@ EOF
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -69,7 +69,7 @@ EOF
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
