@@ -21,7 +21,7 @@ jobs:
     name: Node.js ${{ matrix.node }} Build and Test
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Use Node.js ${{ matrix.node }}
         uses: actions/setup-node@v4
