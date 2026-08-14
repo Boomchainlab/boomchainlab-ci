@@ -65,7 +65,7 @@ jobs:
       - name: Setup Helm
         uses: azure/setup-helm@v4
         with:
-          version: 3.12.3
+          version: 3.21.4
 
       - name: Deploy with Helm
         run: |
